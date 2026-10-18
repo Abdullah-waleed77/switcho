@@ -1,0 +1,733 @@
+<title>Switcho</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Readex+Pro:wght@500;600;700&display=swap">
+<style>
+/* Layout: white marketplace with four views: home (hero + categories) > results (filters + list) > product page (shops that stock it) > shop page (its products) */
+:root{
+  --bg:#FFFFFF; --soft:#F7F9FC; --ink:#0B1220; --ink2:#334055; --muted:#6B7588; --line:#E6EAF0; --line2:#D5DCE6;
+  --brand:#0066FF; --brand-dk:#0052CC; --brand-ink:#FFFFFF; --tint:#EEF4FF; --cyan:#00C2FF;
+  --ok:#0B7A54; --ok-bg:#E6F6EF; --warn:#965A00; --warn-bg:#FFF4E0; --off:#7A8396; --off-bg:#F1F3F7; --wa:#128C4B;
+  --display:"Readex Pro","IBM Plex Sans Arabic",system-ui,sans-serif;
+  --body:"IBM Plex Sans Arabic",system-ui,sans-serif;
+  --r:12px; color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.6;direction:rtl}
+.wrap{max-width:1160px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;color:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+h1,h2,h3{font-family:var(--display);font-weight:600;text-wrap:balance}
+
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:24px;height:68px}
+.logo{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:700;font-size:22px;direction:ltr;flex:none}
+.logo b{color:var(--brand)}
+.hsearch{flex:1;max-width:520px;display:flex;align-items:center;gap:8px;border:1px solid var(--line2);border-radius:10px;padding-inline:12px;background:var(--soft)}
+.hsearch svg{width:18px;height:18px;color:var(--muted);flex:none}
+.hsearch input{flex:1;min-width:0;border:0;background:transparent;font:inherit;color:var(--ink);padding-block:9px;outline:none}
+.links{display:flex;gap:22px;color:var(--ink2);font-weight:500}
+.links a:hover{color:var(--brand)}
+.acts{margin-inline-start:auto;display:flex;gap:10px;align-items:center;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:10px;padding:9px 18px;font-weight:500;border:1px solid var(--line2);background:var(--bg);color:var(--ink);white-space:nowrap}
+.btn:hover{border-color:var(--ink2)}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.pri:hover{background:var(--brand-dk)}
+.btn.ghost{border-color:transparent}
+.btn.wa{color:var(--wa);border-color:var(--line2)}
+.btn svg{width:18px;height:18px}
+
+/* home */
+.hero{padding-block:56px 36px;border-bottom:1px solid var(--line)}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:var(--brand);background:var(--tint);border-radius:999px;padding:4px 12px;margin-bottom:18px}
+.eyebrow i{width:6px;height:6px;border-radius:50%;background:var(--brand)}
+.hero h1{font-size:clamp(30px,4.6vw,48px);line-height:1.2;margin:0 0 14px;max-width:18ch}
+.sub{color:var(--muted);font-size:17px;margin:0 0 30px;max-width:54ch}
+.search{display:flex;align-items:stretch;border:1px solid var(--line2);border-radius:14px;background:var(--bg);max-width:820px;box-shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px rgba(11,18,32,.06)}
+.search .field{flex:1;display:flex;align-items:center;gap:10px;padding-inline:16px;min-width:0}
+.search .field svg{flex:none;width:20px;height:20px;color:var(--muted)}
+.search input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:inherit;font-size:16px;padding-block:16px;outline:none}
+.search select{border:0;border-inline-start:1px solid var(--line);background:transparent;color:var(--ink2);font:inherit;padding-inline:14px;outline:none}
+.search .cam{display:flex;align-items:center;gap:8px;border-inline-start:1px solid var(--line);color:var(--brand);font-weight:500;padding-inline:16px;cursor:pointer;white-space:nowrap}
+.search .cam svg{width:20px;height:20px}
+.search .go{margin:6px;border:0;border-radius:10px;background:var(--brand);color:var(--brand-ink);font-weight:600;padding-inline:24px}
+.popular{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:16px;font-size:14px;color:var(--muted)}
+.popular button{border:0;background:none;color:var(--ink2);text-decoration:underline;text-decoration-color:var(--line2);text-underline-offset:4px;padding:0}
+.popular button:hover{color:var(--brand)}
+.sec{padding-block:32px}
+.sec h2{font-size:20px;margin:0 0 16px}
+.cats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.cat{display:flex;flex-direction:column;align-items:flex-start;gap:10px;border:1px solid var(--line);border-radius:var(--r);padding:16px;background:var(--bg);text-align:right}
+.cat:hover{border-color:var(--brand)}
+.cat svg{width:26px;height:26px;color:var(--brand)}
+.cat span{font-weight:600}
+.cat small{color:var(--muted);font-size:13px;margin-top:-8px}
+
+/* results */
+.crumbs{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:14px;padding-block:20px 4px}
+.crumbs a:hover{color:var(--brand)}
+.crumbs span[aria-current]{color:var(--ink)}
+.rhead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:8px 20px}
+.rhead h1{font-size:26px;margin:0}
+.rhead p{margin:4px 0 0;color:var(--muted)}
+.rhead select{border:1px solid var(--line2);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;padding:8px 10px}
+.photo{display:flex;align-items:center;gap:14px;margin-bottom:20px;border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;background:var(--soft)}
+.photo img{width:56px;height:56px;object-fit:cover;border-radius:10px;background:var(--line)}
+.photo b{display:block}
+.photo small{color:var(--muted)}
+.spin{width:18px;height:18px;border:2px solid var(--line2);border-top-color:var(--brand);border-radius:50%;animation:sp .8s linear infinite;margin-inline-start:auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:32px;padding-bottom:64px}
+aside h4{font-size:13px;font-weight:600;color:var(--muted);margin:0 0 10px}
+.fgroup{padding-block:16px;border-bottom:1px solid var(--line)}
+.fgroup:first-child{padding-top:0}
+.opt{display:flex;align-items:center;gap:10px;padding-block:5px;color:var(--ink2);cursor:pointer}
+.opt input{accent-color:var(--brand);width:16px;height:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
+.card{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;background:var(--bg);text-align:right;padding:0;overflow:hidden}
+.card:hover{border-color:var(--brand)}
+.card .img{aspect-ratio:4/3;max-width:100%;background:var(--soft);border-bottom:1px solid var(--line);display:grid;place-items:center;color:var(--ink2)}
+.card .img svg{width:56px;height:56px}
+.card .body{padding:14px 16px 16px;display:grid;gap:4px;flex:1}
+.brand{font-size:12px;font-weight:600;color:var(--brand);letter-spacing:.04em}
+.card h3{font-size:16px;margin:0;line-height:1.4}
+.model{color:var(--muted);font-size:13px;direction:ltr;text-align:right}
+.card .foot{display:flex;justify-content:space-between;align-items:flex-end;margin-top:auto;padding-top:10px}
+.card .foot small{display:block;color:var(--muted);font-size:12px}
+.card .foot b{font-size:17px;font-variant-numeric:tabular-nums}
+.avail{font-size:13px;font-weight:500;color:var(--ok)}
+.avail.no{color:var(--off)}
+.empty{border:1px dashed var(--line2);border-radius:14px;padding:40px;text-align:center;color:var(--muted)}
+
+/* product */
+.pd{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:40px;padding-block:12px 40px}
+.gallery .main{aspect-ratio:1;max-width:100%;border:1px solid var(--line);border-radius:16px;background:var(--soft);display:grid;place-items:center;color:var(--ink2)}
+.gallery .main svg{width:40%;height:40%}
+.thumbs{display:flex;gap:10px;margin-top:10px}
+.thumbs span{width:64px;height:64px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
+.thumbs span:first-child{border-color:var(--brand)}
+.pd h1{font-size:clamp(24px,3vw,32px);margin:4px 0 6px;line-height:1.3}
+.summary{display:flex;gap:24px;flex-wrap:wrap;padding-block:18px;margin-block:18px;border-block:1px solid var(--line)}
+.summary div small{display:block;color:var(--muted);font-size:13px}
+.summary div b{font-size:20px;font-variant-numeric:tabular-nums}
+.specs{width:100%;border-collapse:collapse;font-size:14px}
+.specs th,.specs td{text-align:right;padding:9px 0;border-bottom:1px solid var(--line)}
+.specs th{color:var(--muted);font-weight:400;width:40%}
+.specs td{direction:ltr;text-align:right}
+.where{padding-bottom:48px}
+.where .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.where h2{font-size:20px;margin:0}
+.seg{display:flex;border:1px solid var(--line2);border-radius:10px;overflow:hidden}
+.seg button{border:0;background:var(--bg);padding:7px 14px;font-size:14px;color:var(--ink2)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.offer{display:grid;grid-template-columns:minmax(0,1.4fr) auto auto auto;gap:20px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:10px}
+.offer.best{border-color:var(--brand)}
+.sname{font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.sname a:hover{color:var(--brand)}
+.verified{width:15px;height:15px;color:var(--brand);flex:none}
+.tag{font-size:11px;font-weight:600;color:var(--brand);background:var(--tint);border-radius:6px;padding:2px 8px}
+.smeta{color:var(--muted);font-size:13px;display:flex;gap:6px 14px;flex-wrap:wrap;margin-top:2px}
+.open{color:var(--ok)}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;border-radius:999px;padding:3px 10px;white-space:nowrap;justify-self:start}
+.pill i{width:6px;height:6px;border-radius:50%;background:currentColor}
+.in{background:var(--ok-bg);color:var(--ok)} .low{background:var(--warn-bg);color:var(--warn)} .out{background:var(--off-bg);color:var(--off)}
+.oprice{font-size:18px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.oprice small{font-size:12px;font-weight:400;color:var(--muted)}
+.oacts{display:flex;gap:8px;justify-self:end}
+.reveal{display:none;grid-column:1/-1;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--soft);border-radius:10px;padding:10px 14px}
+.offer.show .reveal{display:flex}
+.reveal .num{direction:ltr;font-size:18px;font-weight:600;font-variant-numeric:tabular-nums;user-select:all}
+.reveal small{color:var(--muted)}
+.hint{color:var(--muted);font-size:13px;margin-top:6px}
+
+/* shop */
+.shead{display:flex;gap:20px;align-items:center;flex-wrap:wrap;padding-block:12px 24px;border-bottom:1px solid var(--line);margin-bottom:24px}
+.avatar{width:72px;height:72px;border-radius:16px;background:var(--tint);color:var(--brand);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:28px;flex:none}
+.shead h1{font-size:26px;margin:0}
+.shead .acts2{margin-inline-start:auto;display:flex;gap:8px;flex-wrap:wrap}
+.sinfo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:28px}
+.sinfo div{border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.sinfo small{display:block;color:var(--muted);font-size:12px}
+.sinfo b{font-weight:600}
+.sinfo .num{direction:ltr;display:inline-block;user-select:all;font-variant-numeric:tabular-nums}
+
+.cardw{position:relative;display:flex}
+.cardw .card{flex:1}
+.fav{position:absolute;top:10px;left:10px;z-index:1;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--bg);display:grid;place-items:center;color:var(--muted)}
+.fav svg,.btn svg{width:18px;height:18px}
+.fav.on,.btn.on{color:#E0245E}
+.btn.on{border-color:#E0245E}
+.fav.on svg,.btn.on svg{fill:currentColor}
+.tag:empty{display:none}
+.acts .ghost.favlink{display:inline-flex}
+.stats{display:flex;gap:32px;flex-wrap:wrap;margin-top:28px;padding-top:24px;border-top:1px solid var(--line);max-width:820px}
+.stats b{display:block;font-family:var(--display);font-size:24px;font-weight:600;font-variant-numeric:tabular-nums}
+.stats span{color:var(--muted);font-size:14px}
+.pactions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.plan{border:1px solid var(--line);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:12px}
+.plan.hot{border:2px solid var(--brand)}
+.plan h3{margin:0;font-size:18px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.plan .pr{font-family:var(--display);font-size:30px;font-weight:600}
+.plan .pr small{font-size:14px;color:var(--muted);font-weight:400}
+.plan ul{margin:0;padding:0 18px 0 0;color:var(--ink2);display:grid;gap:6px;flex:1}
+.faq{display:grid;gap:10px;max-width:820px}
+.faq details{border:1px solid var(--line);border-radius:12px;padding:14px 18px}
+.faq summary{font-weight:600;cursor:pointer}
+.faq p{margin:8px 0 0;color:var(--muted)}
+.req{grid-column:1/-1;border:1px dashed var(--line2);border-radius:14px;padding:28px;display:grid;gap:14px}
+.req h3{margin:0;font-size:18px}.req p{margin:0;color:var(--muted)}
+.req form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:10px}
+.inp{border:1px solid var(--line2);border-radius:10px;padding:10px 12px;font:inherit;background:var(--bg);color:var(--ink);min-width:0}
+.fab{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:calc(20px + env(safe-area-inset-left,0px));z-index:6;display:flex;align-items:center;gap:8px;background:var(--wa);color:#fff;border-radius:999px;padding:12px 18px;font-weight:600;box-shadow:0 6px 20px rgba(11,18,32,.18)}
+.fab svg{width:20px;height:20px}
+.totop{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));right:calc(20px + env(safe-area-inset-right,0px));z-index:6;width:44px;height:44px;border-radius:50%;border:1px solid var(--line2);background:var(--bg);display:grid;place-items:center}
+.totop svg{width:20px;height:20px}
+.toast{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);z-index:7;background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:10px;font-size:14px;max-width:calc(100% - 32px)}
+.fgrid{display:grid;grid-template-columns:1.5fr repeat(3,minmax(0,1fr));gap:24px;padding-block:16px 24px}
+.fgrid h5{margin:0 0 10px;font-size:14px;color:var(--ink)}
+.fgrid p{margin:10px 0 0;max-width:36ch}
+.fgrid>div>a:not(.logo){display:block;padding-block:3px}
+.fgrid>div>a:not(.logo):hover{color:var(--brand)}
+.fbottom{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:18px}
+@media (max-width:960px){.plans{grid-template-columns:minmax(0,1fr)}.fgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.req form{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:720px){.fab span{display:none}.fab{padding:12px}}
+@media (prefers-reduced-motion:no-preference){.card,.plan,.offer{animation:rise .35s ease both}@keyframes rise{from{transform:translateY(8px)}to{transform:none}}}
+footer{border-top:1px solid var(--line);padding-block:28px;color:var(--muted);font-size:14px}
+footer .wrap{display:block}
+.acts .ghost.langbtn{display:inline-flex;font-weight:600}
+.mapwrap{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:24px;padding-bottom:64px}
+.mapbox{border:1px solid var(--line);border-radius:16px;overflow:hidden;align-self:start}
+.mapbox svg{display:block;width:100%;height:auto}
+.mpin{cursor:pointer}
+.slist{display:grid;gap:10px;align-content:start}
+.scard{border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;gap:6px}
+.scard.active{border-color:var(--brand);background:var(--tint)}
+.row2{display:flex;gap:8px;flex-wrap:wrap}
+.tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{font-weight:500;color:var(--muted);text-align:start;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:0}
+.qty{display:inline-flex;align-items:center;border:1px solid var(--line2);border-radius:10px;overflow:hidden}
+.qty button{border:0;background:var(--soft);width:32px;height:34px;font-size:16px}
+.qty input{width:52px;border:0;text-align:center;font:inherit;background:var(--bg);color:var(--ink);height:34px;font-variant-numeric:tabular-nums}
+.pin-inp{width:84px}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:28px}
+.tile{border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.tile small{display:block;color:var(--muted);font-size:13px}
+.tile b{font-family:var(--display);font-size:24px;font-weight:600;font-variant-numeric:tabular-nums}
+.bars{display:flex;align-items:flex-end;gap:5px;height:44px;margin-top:8px}
+.bars i{flex:1;background:var(--tint);border-radius:3px 3px 0 0}
+.bars i:last-child{background:var(--brand)}
+.dsec{margin-bottom:36px}
+.dsec>.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.dsec h2{font-size:20px;margin:0}
+.addrow{display:grid;grid-template-columns:minmax(0,2fr) 110px 110px auto;gap:10px;margin-top:12px}
+.reqc{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.reqc b{display:block}.reqc small{color:var(--muted)}
+.covers{display:grid;gap:10px}
+.cov{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.cov.best{border-color:var(--brand)}
+.meter{grid-column:1/-1;height:6px;border-radius:3px;background:var(--off-bg);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--brand)}
+.miss{grid-column:1/-1;color:var(--muted);font-size:13px}
+.authbox{max-width:440px;margin:24px auto 64px;border:1px solid var(--line);border-radius:16px;padding:28px;display:grid;gap:14px}
+.authbox h1{font-size:24px;margin:0}
+.authbox label{display:grid;gap:6px;font-size:14px;color:var(--ink2)}
+.authbox label.check{display:flex;align-items:center;gap:8px}
+@media (max-width:960px){.mapwrap{grid-template-columns:minmax(0,1fr)}.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.addrow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+html[dir=ltr] body{direction:ltr}
+html[dir=ltr] .model,html[dir=ltr] .brand,html[dir=ltr] .cat,html[dir=ltr] .card,html[dir=ltr] .specs th,html[dir=ltr] .specs td{text-align:left}
+html[dir=ltr] .from{text-align:right}
+html[dir=ltr] .fav{left:auto;right:10px}
+html[dir=ltr] .plan ul{padding:0 0 0 18px}
+
+@media (max-width:960px){.cats{grid-template-columns:repeat(3,minmax(0,1fr))}.layout,.pd{grid-template-columns:minmax(0,1fr)}aside{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.fgroup{border:0;padding:0}.gallery .main{aspect-ratio:16/9}.thumbs{display:none}.sinfo{grid-template-columns:repeat(2,minmax(0,1fr))}.bar{flex-wrap:wrap;height:auto;padding-block:10px;row-gap:6px}.links{order:3;width:100%;overflow-x:auto;gap:18px;white-space:nowrap;font-size:14px;padding-bottom:2px}}
+@media (max-width:720px){
+  .acts .ghost,.hsearch{display:none}
+  .search{flex-wrap:wrap}.search .field{flex-basis:100%;border-bottom:1px solid var(--line)}
+  .search select,.search .cam{border-inline-start:0;flex:1;padding-block:12px}.search .cam{border-inline-start:1px solid var(--line)}
+  .search .go{flex-basis:calc(100% - 12px);padding-block:12px}
+  .cats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .offer{grid-template-columns:minmax(0,1fr) auto;gap:10px}
+  .oacts{grid-column:1/-1;justify-self:stretch}.oacts .btn{flex:1}
+  .shead .acts2{margin-inline-start:0;width:100%}.shead .acts2 .btn{flex:1}
+}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+</style>
+
+<header>
+  <div class="wrap bar">
+    <a class="logo" href="#home" aria-label="Switcho الرئيسية">
+      <svg width="26" height="30" viewBox="0 0 80 90" aria-hidden="true"><path d="M40 84C40 84 10 52 10 34a30 30 0 0 1 60 0c0 18-30 50-30 50Z" fill="var(--brand)"/><circle cx="40" cy="31" r="13" fill="#fff"/><rect x="34" y="43" width="12" height="8" rx="2" fill="#fff"/><path d="M36 33l4-7 4 7" fill="none" stroke="var(--cyan)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Switch<b>o</b></span>
+    </a>
+    <form class="hsearch" id="hForm" role="search" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" id="hq" placeholder="ابحث عن قطعة" aria-label="ابحث عن قطعة" autocomplete="off">
+    </form>
+    <nav class="links" id="links" aria-label="القائمة">
+      <a href="#home">الرئيسية</a>
+      <a href="#results">كل المنتجات</a>
+      <a href="#map">خريطة المحلات</a>
+      <a href="#list">قائمتي</a>
+      <a href="#plans">لأصحاب المحلات</a>
+    </nav>
+    <div class="acts">
+      <a class="btn ghost favlink" href="#fav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20s-7-4.4-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.6-9 9-9 9z"/></svg>المفضلة<span class="tag" id="favCount"></span></a>
+      <button class="btn ghost langbtn" id="langBtn" type="button" aria-label="Switch language">EN</button>
+      <a class="btn ghost" href="#login" id="loginLink">تسجيل الدخول</a>
+      <a class="btn pri" href="#login" id="signupLink">حساب مجاني</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- HOME -->
+  <div id="vHome">
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow"><i></i>محلات الكهربائيات في الشارقة ودبي</span>
+        <h1>كل القطع الكهربائية في مكان واحد</h1>
+        <p class="sub">ابحث بالاسم أو بالصورة، وشوف أي محل عنده القطعة، الكمية المتوفرة، السعر، ورقم التواصل.</p>
+        <form class="search" id="searchForm" role="search">
+          <div class="field">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="search" id="q" placeholder="سويتش شنايدر، لمبة سبوت، قاطع 32 أمبير" aria-label="ابحث عن منتج" autocomplete="off">
+          </div>
+          <select id="emirate" aria-label="الإمارة">
+            <option value="all">كل الإمارات</option>
+            <option value="الشارقة">الشارقة</option>
+            <option value="دبي">دبي</option>
+          </select>
+          <label class="cam" for="photoInput">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+            بحث بالصورة
+          </label>
+          <input type="file" id="photoInput" accept="image/*" hidden>
+          <button class="go" type="submit">بحث</button>
+        </form>
+        <div class="popular" id="popular">
+          <span>الأكثر بحثاً:</span>
+          <button type="button" data-q="شنايدر">شنايدر</button>
+          <button type="button" data-q="سبوت">لمبات سبوت</button>
+          <button type="button" data-q="13 امبير">فيش 13 أمبير</button>
+          <button type="button" data-q="ABB">قواطع ABB</button>
+        </div>
+        <div class="stats" id="stats"></div>
+      </div>
+    </section>
+    <section class="wrap sec">
+      <h2>تصفح حسب الفئة</h2>
+      <div class="cats" id="cats"></div>
+    </section>
+    <section class="wrap sec" id="recentSec" hidden style="padding-top:0">
+      <h2>شفتها مؤخراً</h2>
+      <div class="grid" id="recent"></div>
+    </section>
+    <section class="owners-lite wrap sec" id="owners">
+      <div style="border:1px solid var(--line);border-radius:16px;padding:28px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;background:var(--soft)">
+        <div style="min-width:0;max-width:60ch">
+          <h2 style="margin:0 0 6px">عندك محل كهربائيات؟</h2>
+          <p style="margin:0;color:var(--muted)">اعرض منتجاتك وكمياتك لكل شخص يدوّر على قطعة في منطقتك. الزبون يتواصل معك مباشرة، بدون عمولة.</p>
+        </div>
+        <a class="btn pri" href="#dash">سجّل محلك</a>
+      </div>
+    </section>
+    <section class="wrap sec" id="plans">
+      <h2>باقات أصحاب المحلات</h2>
+      <div class="plans">
+        <div class="plan"><h3>تجربة</h3><div class="pr">مجاناً <small>أول شهر</small></div><ul><li>حتى 50 منتج</li><li>صفحة للمحل</li><li>اتصال وواتساب مباشر</li></ul><a class="btn" href="#dash">ابدأ مجاناً</a></div>
+        <div class="plan hot"><h3>الأساسية <span class="tag">الأكثر طلباً</span></h3><div class="pr">99 <small>د.إ / شهر</small></div><ul><li>منتجات بلا حدود</li><li>رفع المنتجات من Excel</li><li>علامة محل موثّق</li><li>إحصائيات: كم شخص شاف منتجاتك</li></ul><a class="btn pri" href="#dash">اشترك</a></div>
+        <div class="plan"><h3>المميزة</h3><div class="pr">249 <small>د.إ / شهر</small></div><ul><li>كل مميزات الأساسية</li><li>محلك يطلع أول بالنتائج</li><li>ظهور بالصفحة الرئيسية</li><li>دعم أولوية</li></ul><a class="btn" href="#dash">اشترك</a></div>
+      </div>
+      <p class="hint">أسعار مقترحة للتجربة.</p>
+    </section>
+    <section class="wrap sec" id="faq" style="padding-bottom:64px">
+      <h2>أسئلة شائعة</h2>
+      <div class="faq">
+        <details><summary>هل Switcho يبيع المنتجات؟</summary><p>لا. Switcho يوريك أي محل عنده القطعة، وأنت تتواصل مع المحل مباشرة وتشتري منه.</p></details>
+        <details><summary>هل الكميات المعروضة دقيقة؟</summary><p>كل محل يحدّث كمياته بنفسه، ونعرض لك متى آخر تحديث. إذا لقيت كمية غلط اضغط "أبلغ عن كمية غلط" بصفحة المنتج.</p></details>
+        <details><summary>ما أعرف اسم القطعة، شسوي؟</summary><p>صوّرها واضغط "بحث بالصورة"، ونطلع لك القطع المشابهة.</p></details>
+        <details><summary>ما لقيت القطعة اللي أبيها؟</summary><p>ابحث عنها، وإذا ما طلعت نتائج تقدر ترسل طلب للمحلات، واللي عنده يتواصل معك.</p></details>
+        <details><summary>كم يكلف الاشتراك لصاحب المحل؟</summary><p>أول شهر مجاني، وبعدها تختار الباقة اللي تناسبك. ما في عمولة على البيع.</p></details>
+      </div>
+    </section>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="vResults" class="wrap" hidden>
+    <nav class="crumbs" aria-label="المسار"><a href="#home">الرئيسية</a><span>›</span><span aria-current="page" id="rCrumb">نتائج البحث</span></nav>
+    <div class="rhead">
+      <div><h1 id="rTitle">نتائج البحث</h1><p id="rCount"></p></div>
+      <select id="sort" aria-label="الترتيب">
+        <option value="avail">الأكثر توفراً</option>
+        <option value="price">الأقل سعراً</option>
+      </select>
+    </div>
+    <div class="photo" id="photoBox" hidden>
+      <img id="photoPreview" alt="الصورة المرفوعة">
+      <div><b id="photoTitle">جاري التعرف على القطعة</b><small id="photoSub">نحلل الصورة بالذكاء الاصطناعي</small></div>
+      <div class="spin" id="spin"></div>
+    </div>
+    <div class="layout">
+      <aside aria-label="الفلاتر">
+        <div class="fgroup"><h4>الإمارة</h4>
+          <label class="opt"><input type="radio" name="em" id="em0" value="all" checked> كل الإمارات</label>
+          <label class="opt"><input type="radio" name="em" id="em1" value="الشارقة"> الشارقة</label>
+          <label class="opt"><input type="radio" name="em" id="em2" value="دبي"> دبي</label>
+        </div>
+        <div class="fgroup"><h4>التوفر</h4><label class="opt"><input type="checkbox" id="onlyIn"> المتوفر فقط</label></div>
+        <div class="fgroup"><h4>الماركة</h4><div id="brands"></div></div>
+      </aside>
+      <div class="grid" id="results"></div>
+    </div>
+  </div>
+
+  <!-- PRODUCT -->
+  <div id="vProduct" class="wrap" hidden></div>
+
+  <!-- SHOP -->
+  <div id="vShop" class="wrap" hidden></div>
+
+  <!-- FAVORITES -->
+  <div id="vFav" class="wrap" hidden></div>
+  <div id="vMap" class="wrap" hidden></div>
+  <div id="vList" class="wrap" hidden></div>
+  <div id="vDash" class="wrap" hidden></div>
+  <div id="vLogin" class="wrap" hidden></div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="fgrid">
+      <div><a class="logo" href="#home" aria-label="Switcho"><svg width="22" height="26" viewBox="0 0 80 90" aria-hidden="true"><path d="M40 84C40 84 10 52 10 34a30 30 0 0 1 60 0c0 18-30 50-30 50Z" fill="var(--brand)"/><circle cx="40" cy="31" r="13" fill="#fff"/><rect x="34" y="43" width="12" height="8" rx="2" fill="#fff"/></svg><span>Switch<b>o</b></span></a><p>سوق القطع الكهربائية في الإمارات. ابحث، قارن، وتواصل مع المحل مباشرة.</p></div>
+      <div><h5>للزبائن</h5><a href="#results">كل المنتجات</a><a href="#fav">المفضلة</a><a href="#faq">الأسئلة الشائعة</a></div>
+      <div><h5>لأصحاب المحلات</h5><a href="#plans">الباقات والأسعار</a><a href="#owners">سجّل محلك</a></div>
+      <div><h5>تابعنا</h5><a href="https://instagram.com" target="_blank" rel="noopener">Instagram</a><a href="https://tiktok.com" target="_blank" rel="noopener">TikTok</a></div>
+    </div>
+    <div class="fbottom"><span>© 2026 Switcho</span><span>نسخة تجريبية. أسماء المحلات والأسعار والأرقام أمثلة فقط.</span></div>
+  </div>
+</footer>
+<button class="totop" id="toTop" type="button" data-act="top" aria-label="للأعلى" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+const I={
+  switch:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="4" y="3" width="16" height="18" rx="3"/><rect x="9" y="7" width="6" height="10" rx="1.5"/></svg>',
+  socket:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M12 8v3M9 14v2M15 14v2"/></svg>',
+  light:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>',
+  breaker:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="6" y="2" width="12" height="20" rx="2"/><rect x="9.5" y="7" width="5" height="6" rx="1"/><path d="M12 16v3"/></svg>',
+  cable:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="M20 12h2"/></svg>',
+  fan:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="2"/><path d="M12 10c0-4 1-7 4-7 2 0 2 3-1 5M14 12c4 0 7 1 7 4 0 2-3 2-5-1M12 14c0 4-1 7-4 7-2 0-2-3 1-5M10 12c-4 0-7-1-7-4 0-2 3-2 5 1"/></svg>'
+};
+const PHONE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>';
+const WA='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21l1.6-4.6A9 9 0 1 1 8 19.6z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.5-2-1-1 .8a4 4 0 0 1-1.8-1.8l.8-1-1-2z"/></svg>';
+const VER='<svg class="verified" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="محل موثّق"><path d="M12 2l2.4 2.2 3.2-.4.9 3.1 2.8 1.6-1.2 3 1.2 3-2.8 1.6-.9 3.1-3.2-.4L12 22l-2.4-2.2-3.2.4-.9-3.1L2.7 15.5l1.2-3-1.2-3 2.8-1.6.9-3.1 3.2.4z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>';
+const cats=[["switch","سويتشات"],["socket","أفياش"],["light","إنارة"],["breaker","قواطع"],["cable","أسلاك"],["fan","مراوح شفط"]];
+const shops={
+  nour:{name:"النور للأدوات الكهربائية",area:"الشارقة",dist:"الصناعية 6",phone:"06 500 0101",wa:"971500000101",hours:"8 ص – 10 م",upd:"قبل ساعة",v:1},
+  watt:{name:"واط ستور",area:"دبي",dist:"الديرة",phone:"04 500 0202",wa:"971500000202",hours:"9 ص – 11 م",upd:"اليوم",v:1},
+  barq:{name:"البرق للإنارة",area:"الشارقة",dist:"أبو شغارة",phone:"06 500 0303",wa:"971500000303",hours:"9 ص – 10 م",upd:"أمس",v:0},
+  khaleej:{name:"الخليج للمواد الكهربائية",area:"دبي",dist:"القوز",phone:"04 500 0404",wa:"971500000404",hours:"7:30 ص – 9 م",upd:"قبل 3 ساعات",v:1},
+  dhiya:{name:"ضياء للإنارة الحديثة",area:"الشارقة",dist:"التعاون",phone:"06 500 0505",wa:"971500000505",hours:"10 ص – 11 م",upd:"قبل يومين",v:0}
+};
+const products=[
+  {id:1,cat:"switch",brand:"Schneider Electric",name:"سويتش مفرد Unica أبيض",model:"Unica · 1 Gang 1 Way · 10A",tags:"سويتش مفتاح شنايدر schneider unica مفرد",specs:{"النوع":"1 Gang 1 Way","التيار":"10A 250V","اللون":"White","التركيب":"Flush"},stock:[["nour",40,9],["watt",12,10],["dhiya",0,9.5]]},
+  {id:2,cat:"switch",brand:"Schneider Electric",name:"سويتش دبل Lisse أبيض",model:"Lisse · 2 Gang · 10A",tags:"سويتش مفتاح شنايدر schneider lisse دبل",specs:{"النوع":"2 Gang 1 Way","التيار":"10A 250V","اللون":"White","التركيب":"Flush"},stock:[["khaleej",25,14],["nour",3,13.5]]},
+  {id:3,cat:"socket",brand:"MK Electric",name:"فيش دبل 13 أمبير مع سويتش",model:"Logic Plus · 13A Double Switched",tags:"فيش افياش بلك سوكت mk 13 امبير",specs:{"النوع":"Double Switched","التيار":"13A","اللون":"White","المعيار":"BS 1363"},stock:[["watt",60,28],["barq",18,26],["nour",5,27]]},
+  {id:4,cat:"socket",brand:"Legrand",name:"فيش مفرد 13 أمبير",model:"Belanko · 13A Single Switched",tags:"فيش افياش ليجراند legrand 13 امبير",specs:{"النوع":"Single Switched","التيار":"13A","اللون":"White","المعيار":"BS 1363"},stock:[["khaleej",30,16],["dhiya",9,15]]},
+  {id:5,cat:"light",brand:"Philips",name:"لمبة سبوت LED 7 واط",model:"LED Spot · 7W · 4000K",tags:"لمبه لمبات انارة سبوت led فيليبس philips",specs:{"القدرة":"7W","لون الضوء":"4000K","القاعدة":"GU10","العمر":"15,000 h"},stock:[["barq",120,8],["dhiya",45,7.5],["watt",0,8]]},
+  {id:6,cat:"light",brand:"Opple",name:"بانل LED مربع 60×60",model:"LED Panel · 40W · 6500K",tags:"انارة بانل لوح led اوبل opple سقف",specs:{"القدرة":"40W","لون الضوء":"6500K","المقاس":"600 × 600 mm","التركيب":"Recessed"},stock:[["barq",22,85],["khaleej",6,90]]},
+  {id:7,cat:"breaker",brand:"ABB",name:"قاطع أحادي 32 أمبير",model:"S201 · C32 · MCB",tags:"قاطع قواطع بريكر breaker abb 32 امبير",specs:{"الأقطاب":"1P","التيار":"32A","المنحنى":"C","السعة":"6 kA"},stock:[["nour",35,24],["khaleej",14,26]]},
+  {id:8,cat:"cable",brand:"Ducab",name:"سلك 2.5 ملم لفة 100 متر",model:"2.5mm² · 100m · Red",tags:"سلك اسلاك كيبل ducab دوكاب 2.5",specs:{"المقطع":"2.5 mm²","الطول":"100 m","العزل":"PVC","اللون":"Red"},stock:[["watt",10,145],["nour",0,140],["barq",4,150]]},
+  {id:9,cat:"fan",brand:"KDK",name:"مروحة شفط حمام 15 سم",model:"15WHC · 150mm",tags:"مروحه شفط حمام kdk",specs:{"القطر":"150 mm","القدرة":"18W","التركيب":"Wall / Ceiling","الضجيج":"36 dB"},stock:[["dhiya",16,55],["watt",7,58]]}
+];
+const N=s=>s.toLowerCase().replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي").trim();
+const $=id=>document.getElementById(id);
+const st=n=>n===0?['out','غير متوفر']:n<10?['low','كمية قليلة ('+n+')']:['in','متوفر ('+n+' قطعة)'];
+const catName=k=>cats.find(c=>c[0]===k)[1];
+const minPrice=p=>{const a=p.stock.filter(r=>r[1]>0);return a.length?Math.min(...a.map(r=>r[2])):null};
+let state={q:"",cat:null,em:"all"};const selBrands=new Set();
+
+$("cats").innerHTML=cats.map(([k,l])=>`<button class="cat" type="button" data-c="${k}">${I[k]}<span>${l}</span><small>${products.filter(p=>p.cat===k).length} منتج</small></button>`).join("");
+$("brands").innerHTML=[...new Set(products.map(p=>p.brand))].map((b,i)=>`<label class="opt"><input type="checkbox" id="br${i}" value="${b}"> <span dir="ltr">${b}</span></label>`).join("");
+
+function show(v){["vHome","vResults","vProduct","vShop","vFav","vMap","vList","vDash","vLogin"].forEach(x=>$(x).hidden=x!==v);if(v==="vHome")renderRecent();$("hForm").hidden=v==="vHome";window.scrollTo(0,0)}
+
+function renderResults(){
+  const words=N(state.q).split(/\s+/).filter(Boolean),only=$("onlyIn").checked;
+  let list=products.filter(p=>(!state.cat||p.cat===state.cat)&&(!selBrands.size||selBrands.has(p.brand))&&words.every(w=>N(p.name+" "+p.tags+" "+p.model+" "+p.brand+" "+(D[p.name]||"")+" "+(D[catName(p.cat)]||"")).includes(w)))
+    .map(p=>{const rows=p.stock.filter(([s,n])=>(state.em==="all"||shops[s].area===state.em)&&(!only||n>0));const av=rows.filter(r=>r[1]>0);
+      return{...p,rows,avail:av.length,min:av.length?Math.min(...av.map(r=>r[2])):null}}).filter(p=>p.rows.length);
+  list.sort($("sort").value==="price"?(a,b)=>(a.min??1e9)-(b.min??1e9):(a,b)=>b.avail-a.avail);
+  const t=state.cat?catName(state.cat):state.q?`نتائج "${state.q}"`:"كل المنتجات";
+  $("rTitle").textContent=t;$("rCrumb").textContent=t;
+  $("rCount").textContent=list.length?`${list.length} منتج متوفر في ${new Set(list.flatMap(p=>p.rows.map(r=>r[0]))).size} محلات`:"";
+  $("results").innerHTML=list.length?list.map(p=>`
+    <div class="cardw">${favBtn(p.id)}<a class="card" href="#p${p.id}">
+      <div class="img">${I[p.cat]}</div>
+      <div class="body">
+        <div class="brand" dir="ltr">${p.brand.toUpperCase()}</div>
+        <h3>${p.name}</h3><div class="model">${p.model}</div>
+        <div class="foot">
+          <div>${p.min!=null?`<small>يبدأ من</small><b>${p.min} د.إ</b>`:`<small>السعر</small><b>—</b>`}</div>
+          <span class="avail ${p.avail?'':'no'}">${p.avail?`متوفر في ${p.avail} ${p.avail>2?'محلات':'محل'}`:'غير متوفر'}</span>
+        </div>
+      </div>
+    </a></div>`).join(""):`<div class="req"><h3>ما لقيت القطعة؟ اطلبها من المحلات</h3><p>Switcho ما يبيع، بس اكتب القطعة اللي تدور عليها ورقمك، ونعرض طلبك على أصحاب المحلات بالإمارة. اللي عنده القطعة يتصل فيك مباشرة.</p><form id="reqForm"><input class="inp" name="part" id="reqPart" placeholder="اسم القطعة أو الموديل" value="${state.q.replace(/"/g,'')}"><select class="inp" name="em" id="reqEm" aria-label="الإمارة"><option>الشارقة</option><option>دبي</option></select><input class="inp" name="phone" id="reqPhone" type="tel" placeholder="05X XXX XXXX" dir="ltr" aria-label="رقمك"><button class="btn pri" type="submit">أرسل الطلب</button></form></div>`;
+}
+
+function offerRow(p,[s,n,pr],best,showProductLink){
+  const h=shops[s],[c,t]=st(n);
+  return`<div class="offer${best?' best':''}" data-s="${s}">
+    <div style="min-width:0">
+      <div class="sname">${showProductLink?`<a href="#p${p.id}">${p.name}</a>`:`<a href="#s-${s}">${h.name}</a>${h.v?VER:''}`}${best?'<span class="tag">أقل سعر</span>':''}</div>
+      <div class="smeta">${showProductLink?`<span dir="ltr">${p.brand}</span>`:`<span>${h.area} · ${h.dist}</span><span class="open">مفتوح · ${h.hours}</span>`}<span>تحديث الكمية: ${h.upd}</span></div>
+    </div>
+    <span class="pill ${c}"><i></i>${t}</span>
+    <span class="oprice">${pr} <small>د.إ</small></span>
+    <div class="oacts">
+      ${n===0?`<button class="btn" type="button" data-act="notify">${BELL}نبّهني لما يتوفر</button>`:''}
+      <button class="btn pri" type="button" data-act="call">${PHONE}اتصال</button>
+      <a class="btn wa" href="https://wa.me/${h.wa}?text=${encodeURIComponent('مرحبا، شفت على Switcho إن عندكم: '+p.name+'. هل متوفر؟')}" target="_blank" rel="noopener">${WA}واتساب</a>
+      <a class="btn" href="${mapsUrl(h)}" target="_blank" rel="noopener" aria-label="الاتجاهات للمحل" title="الاتجاهات">${PIN}</a>
+    </div>
+    <div class="reveal"><div><small>رقم ${h.name}</small><div class="num">${h.phone}</div></div><button class="btn" type="button" data-act="copy" data-phone="${h.phone}">نسخ الرقم</button></div>
+  </div>`;
+}
+
+function renderProduct(id,emf="all"){
+  const p=products.find(x=>x.id===id);if(!p)return go("#home");
+  const rows=p.stock.filter(([s])=>emf==="all"||shops[s].area===emf).sort((a,b)=>(b[1]>0)-(a[1]>0)||a[2]-b[2]);
+  const av=p.stock.filter(r=>r[1]>0),mn=minPrice(p),bestS=rows.find(r=>r[1]>0&&r[2]===mn);
+  const total=av.reduce((a,r)=>a+r[1],0);
+  const similar=products.filter(x=>x.cat===p.cat&&x.id!==p.id);
+  $("vProduct").innerHTML=`
+    <nav class="crumbs" aria-label="المسار"><a href="#home">الرئيسية</a><span>›</span><a href="#c-${p.cat}">${catName(p.cat)}</a><span>›</span><span aria-current="page">${p.name}</span></nav>
+    <div class="pd">
+      <div class="gallery"><div class="main">${I[p.cat]}</div><div class="thumbs"><span></span><span></span><span></span></div></div>
+      <div>
+        <div class="brand" dir="ltr" style="text-align:right">${p.brand.toUpperCase()}</div>
+        <h1>${p.name}</h1><div class="model">${p.model}</div>
+        <div class="pactions"><button class="btn${favs.includes(p.id)?' on':''}" type="button" data-act="fav" data-id="${p.id}">${HEART}المفضلة</button><button class="btn" type="button" data-act="share">${SHARE}مشاركة</button><button class="btn" type="button" data-act="addlist" data-id="${p.id}">+ أضف لقائمتي</button></div>
+        <div class="summary">
+          <div><small>أقل سعر</small><b>${mn!=null?mn+' د.إ':'—'}</b></div>
+          <div><small>متوفر في</small><b>${av.length} من ${p.stock.length} محلات</b></div>
+          <div><small>الكمية الكلية</small><b>${total} قطعة</b></div>
+        </div>
+        <table class="specs"><tbody>${Object.entries(p.specs).map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join("")}</tbody></table>
+      </div>
+    </div>
+    <section class="where">
+      <div class="top"><h2>وين تلقاه</h2>
+        <div class="seg" id="pSeg">${[["all","الكل"],["الشارقة","الشارقة"],["دبي","دبي"]].map(([v,l])=>`<button type="button" data-em="${v}" aria-pressed="${v===emf}">${l}</button>`).join("")}</div>
+      </div>
+      ${rows.length?rows.map(r=>offerRow(p,r,r===bestS,false)).join(""):'<div class="empty">ما في محلات بهالإمارة عندها هالقطعة.</div>'}
+      <p class="hint">تواصل مع المحل مباشرة. Switcho ما ياخذ عمولة على البيع. · <button class="btn ghost" style="padding:0;color:var(--brand)" type="button" data-act="report">أبلغ عن كمية غلط</button></p>
+    </section>
+    ${similar.length?`<section class="sec" style="padding-top:0;padding-bottom:56px"><h2>منتجات مشابهة</h2><div class="grid">${similar.map(x=>`<a class="card" href="#p${x.id}"><div class="img">${I[x.cat]}</div><div class="body"><div class="brand" dir="ltr">${x.brand.toUpperCase()}</div><h3>${x.name}</h3><div class="model">${x.model}</div></div></a>`).join("")}</div></section>`:''}`;
+  $("pSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(b)renderProduct(id,b.dataset.em)});
+  addRecent(id);
+}
+
+function renderShop(k){
+  const h=shops[k];if(!h)return go("#home");
+  const items=products.filter(p=>p.stock.some(r=>r[0]===k)).map(p=>[p,p.stock.find(r=>r[0]===k)]).sort((a,b)=>(b[1][1]>0)-(a[1][1]>0));
+  $("vShop").innerHTML=`
+    <nav class="crumbs" aria-label="المسار"><a href="#home">الرئيسية</a><span>›</span><span>المحلات</span><span>›</span><span aria-current="page">${h.name}</span></nav>
+    <div class="shead">
+      <div class="avatar">${h.name.replace(/^ال/,"").charAt(0)}</div>
+      <div><h1 style="display:flex;align-items:center;gap:8px">${h.name}${h.v?VER:''}</h1><div class="smeta"><span>${h.area} · ${h.dist}</span><span class="open">مفتوح الحين</span></div></div>
+      <div class="acts2" data-s="${k}">
+        <a class="btn wa" href="https://wa.me/${h.wa}" target="_blank" rel="noopener">${WA}واتساب</a>
+        <a class="btn" href="${mapsUrl(h)}" target="_blank" rel="noopener">${PIN}الموقع على الخريطة</a>
+      </div>
+    </div>
+    <div class="sinfo">
+      <div><small>رقم التواصل</small><b class="num">${h.phone}</b></div>
+      <div><small>ساعات العمل</small><b>${h.hours}</b></div>
+      <div><small>المنتجات المعروضة</small><b>${items.length} منتج</b></div>
+      <div><small>آخر تحديث للكميات</small><b>${h.upd}</b></div>
+    </div>
+    <section class="where"><div class="top"><h2>منتجات المحل</h2></div>
+      ${items.map(([p,r])=>offerRow(p,r,false,true)).join("")}
+    </section>`;
+}
+
+function go(h){location.hash=h}
+function route(){
+  const h=location.hash.slice(1)||"home";
+  if(h==="home"){show("vHome")}
+  else if(h==="owners"){show("vHome");$("owners").scrollIntoView()}
+  else if(h==="results"){renderResults();show("vResults")}
+  else if(/^c-/.test(h)){state.cat=h.slice(2);state.q="";renderResults();show("vResults")}
+  else if(/^p\d+$/.test(h)){renderProduct(+h.slice(1));show("vProduct")}
+  else if(/^s-/.test(h)){renderShop(h.slice(2));show("vShop")}
+  else if(h==="fav"){renderFav();show("vFav")}
+  else if(h==="map"){renderMap();show("vMap")}
+  else if(h==="list"){renderList();show("vList")}
+  else if(h==="dash"){renderDash();show("vDash")}
+  else if(h==="login"){renderLogin();show("vLogin")}
+  else if(h==="plans"||h==="faq"){show("vHome");$(h).scrollIntoView()}
+  else show("vHome");
+}
+function search(q,em){state={q:q.trim(),cat:null,em:em||state.em};$("hq").value=state.q;
+  document.querySelector(`input[name=em][value="${state.em}"]`).checked=true;$("photoBox").hidden=true;
+  if(location.hash==="#results")route();else go("#results")}
+$("searchForm").addEventListener("submit",e=>{e.preventDefault();search($("q").value,$("emirate").value)});
+$("hForm").addEventListener("submit",e=>{e.preventDefault();search($("hq").value)});
+$("popular").addEventListener("click",e=>{const b=e.target.closest("button");if(b)search(b.dataset.q)});
+$("cats").addEventListener("click",e=>{const b=e.target.closest(".cat");if(b)go("#c-"+b.dataset.c)});
+document.querySelectorAll("input[name=em]").forEach(r=>r.addEventListener("change",()=>{state.em=r.value;renderResults()}));
+["onlyIn","sort"].forEach(id=>$(id).addEventListener("change",renderResults));
+$("brands").addEventListener("change",e=>{e.target.checked?selBrands.add(e.target.value):selBrands.delete(e.target.value);renderResults()});
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]");if(!b)return;
+  if(b.dataset.act==="call"){b.closest(".offer").classList.toggle("show")}
+  if(b.dataset.act==="copy"){const ok=()=>{b.textContent="تم النسخ";setTimeout(()=>b.textContent="نسخ الرقم",1500)};
+    const sel=()=>{const r=document.createRange();r.selectNodeContents(b.parentElement.querySelector(".num"));getSelection().removeAllRanges();getSelection().addRange(r)};
+    try{navigator.clipboard.writeText(b.dataset.phone).then(ok,sel)}catch(_){sel()}}
+});
+$("photoInput").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;
+  state={q:"",cat:null,em:$("emirate").value};go("#results");
+  setTimeout(()=>{$("photoPreview").src=URL.createObjectURL(f);$("photoBox").hidden=false;$("spin").hidden=false;
+    $("photoTitle").textContent="جاري التعرف على القطعة";$("photoSub").textContent="نحلل الصورة بالذكاء الاصطناعي";
+    setTimeout(()=>{$("spin").hidden=true;$("photoTitle").textContent="تعرّفنا عليها: سويتش شنايدر";$("photoSub").textContent="نتيجة تجريبية. بالنسخة الحقيقية يتعرف الذكاء الاصطناعي على صورتك";
+      state.q="سويتش شنايدر";$("hq").value=state.q;renderResults()},1300)},50)});
+const HEART='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20s-7-4.4-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.6-9 9-9 9z"/></svg>';
+const PIN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
+const SHARE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>';
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))||[]}catch(_){return[]}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}}};
+let favs=store.get("sw_fav"),recent=store.get("sw_recent");
+function mapsUrl(h){return"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(h.name+" "+h.dist+" "+h.area)}
+function toast(m){const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,2400)}
+function favBtn(id){const on=favs.includes(id);return`<button class="fav${on?' on':''}" type="button" data-act="fav" data-id="${id}" aria-label="المفضلة" aria-pressed="${on}">${HEART}</button>`}
+function miniCard(x){const m=minPrice(x);return`<div class="cardw">${favBtn(x.id)}<a class="card" href="#p${x.id}"><div class="img">${I[x.cat]}</div><div class="body"><div class="brand" dir="ltr">${x.brand.toUpperCase()}</div><h3>${x.name}</h3><div class="model">${x.model}</div><div class="foot"><div><small>يبدأ من</small><b>${m!=null?m+' د.إ':'—'}</b></div></div></div></a></div>`}
+function refreshFavs(){document.querySelectorAll('[data-act="fav"]').forEach(b=>{const on=favs.includes(+b.dataset.id);b.classList.toggle("on",on);b.setAttribute("aria-pressed",on)});$("favCount").textContent=favs.length||""}
+function renderFav(){const l=products.filter(p=>favs.includes(p.id));$("vFav").innerHTML=`<nav class="crumbs" aria-label="المسار"><a href="#home">الرئيسية</a><span>›</span><span aria-current="page">المفضلة</span></nav><div class="rhead"><div><h1>المفضلة</h1><p>${l.length} منتج محفوظ</p></div></div><div class="grid" style="padding-bottom:64px">${l.length?l.map(miniCard).join(""):'<div class="empty" style="grid-column:1/-1">ما حفظت شي للحين. اضغط على القلب بأي منتج حتى يوصل هنا.</div>'}</div>`}
+function renderRecent(){const l=recent.map(id=>products.find(p=>p.id===id)).filter(Boolean);$("recentSec").hidden=!l.length;$("recent").innerHTML=l.map(miniCard).join("")}
+function addRecent(id){recent=[id,...recent.filter(x=>x!==id)].slice(0,4);store.set("sw_recent",recent)}
+$("stats").innerHTML=[[Object.keys(shops).length,"محلات مشتركة"],[products.length,"منتج بالكتالوج"],[products.reduce((a,p)=>a+p.stock.reduce((b,r)=>b+r[1],0),0),"قطعة متوفرة"],[2,"إمارات"]].map(([n,l])=>`<div><b>${n}</b><span>${l}</span></div>`).join("");
+document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(!b)return;const a=b.dataset.act;
+  if(a==="fav"){e.preventDefault();const id=+b.dataset.id;favs=favs.includes(id)?favs.filter(x=>x!==id):[...favs,id];store.set("sw_fav",favs);refreshFavs();toast(favs.includes(id)?"انحفظ بالمفضلة":"انشال من المفضلة");if(location.hash==="#fav")renderFav()}
+  if(a==="share"){const u=location.href;try{navigator.clipboard.writeText(u).then(()=>toast("تم نسخ رابط المنتج"),()=>toast(u))}catch(_){toast(u)}}
+  if(a==="report")toast("شكراً، راح نتأكد من الكمية مع المحل");
+  if(a==="top")scrollTo({top:0,behavior:"smooth"});
+});
+document.addEventListener("submit",e=>{if(e.target.id!=="reqForm")return;e.preventDefault();const f=e.target;
+  if(!f.part.value.trim()||!f.phone.value.trim()){toast("اكتب اسم القطعة ورقمك");return}
+  addReq(f.part.value.trim(),f.em.value);f.outerHTML='<p style="color:var(--ok);font-weight:600;margin:0">وصل طلبك. أرسلناه لمحلات الإمارة، واللي عنده القطعة راح يتواصل معك.</p>'});
+addEventListener("scroll",()=>{$("toTop").hidden=scrollY<600},{passive:true});
+const BELL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0"/></svg>';
+const ME="nour";
+const pos={nour:[440,215],watt:[250,215],barq:[420,150],khaleej:[150,285],dhiya:[360,128]};
+let mapEm="all",mapSel=null,plist=store.get("sw_list"),reqs=store.get("sw_reqs");
+if(!reqs.length)reqs=[{part:"سويتش ثلاثي شنايدر أسود",em:"الشارقة",t:"قبل 20 دقيقة",done:0},{part:"قاطع 63 أمبير ثلاثي الأطوار",em:"الشارقة",t:"قبل ساعتين",done:0},{part:"لمبة LED تراك 30 واط",em:"دبي",t:"أمس",done:0}];
+let user=(()=>{try{return localStorage.getItem("sw_user")}catch(_){return null}})();
+const saveList=()=>store.set("sw_list",plist);
+const myRow=id=>products.find(x=>x.id===id).stock.find(r=>r[0]===ME);
+const CR=t=>`<nav class="crumbs" aria-label="المسار"><a href="#home">الرئيسية</a><span>›</span><span aria-current="page">${t}</span></nav>`;
+function addReq(part,em){reqs=[{part,em,t:"الحين",done:0},...reqs];store.set("sw_reqs",reqs)}
+function renderMap(){
+  const ks=Object.keys(shops).filter(k=>mapEm==="all"||shops[k].area===mapEm);
+  $("vMap").innerHTML=CR("خريطة المحلات")+`<div class="rhead"><div><h1>خريطة المحلات</h1><p>${ks.length} محلات مشتركة</p></div><div class="seg" id="mSeg">${[["all","الكل"],["الشارقة","الشارقة"],["دبي","دبي"]].map(([v,l])=>`<button type="button" data-em="${v}" aria-pressed="${v===mapEm}">${l}</button>`).join("")}</div></div>
+  <div class="mapwrap"><div class="mapbox"><svg viewBox="0 0 600 400" role="img" aria-label="خريطة توضيحية لمواقع المحلات">
+  <rect width="600" height="400" fill="#F3F6FA"/>
+  <path d="M0 0H600V20C520 40 470 70 420 95S300 170 220 195 80 225 0 235Z" fill="#DCEBFB"/>
+  <path d="M335 150L395 400" stroke="#C9D3E0" stroke-width="2" stroke-dasharray="6 6" fill="none"/>
+  <text x="80" y="80" fill="#6F98CC" font-size="16">الخليج العربي</text>
+  <text x="130" y="360" fill="#8C97A8" font-size="22">دبي</text>
+  <text x="470" y="330" fill="#8C97A8" font-size="22">الشارقة</text>
+  ${ks.map(k=>{const[x,y]=pos[k],on=k===mapSel;return`<g class="mpin" tabindex="0" role="button" data-pin="${k}" aria-label="${shops[k].name}"><path d="M${x} ${y}c0 0-14-15-14-25a14 14 0 0 1 28 0c0 10-14 25-14 25z" fill="${on?'#0B1220':'#0066FF'}"/><circle cx="${x}" cy="${y-25}" r="5" fill="#fff"/></g>`}).join("")}
+  </svg></div>
+  <div class="slist">${ks.map(k=>{const h=shops[k],n=products.filter(p=>p.stock.some(r=>r[0]===k&&r[1]>0)).length;return`<div class="scard${k===mapSel?' active':''}" id="sc-${k}"><div class="sname"><a href="#s-${k}">${h.name}</a>${h.v?VER:''}</div><div class="smeta"><span>${h.area} · ${h.dist}</span><span class="open">مفتوح · ${h.hours}</span></div><div class="smeta"><span>${n} منتج متوفر</span></div><div class="row2"><a class="btn" href="#s-${k}">صفحة المحل</a><a class="btn" href="${mapsUrl(h)}" target="_blank" rel="noopener">${PIN}الاتجاهات</a></div></div>`}).join("")}<p class="hint">خريطة توضيحية. زر "الاتجاهات" يفتح الموقع الحقيقي على Google Maps.</p></div></div>`;
+}
+function selPin(k){mapSel=k;renderMap();const c=$("sc-"+k);if(c)c.scrollIntoView({behavior:"smooth",block:"nearest"})}
+function renderList(){
+  const items=plist.map(([id,q])=>[products.find(p=>p.id===id),q]).filter(x=>x[0]);
+  let h=CR("قائمتي")+`<div class="rhead"><div><h1>قائمة المشروع</h1><p>حط كل القطع اللي تحتاجها، ونوريك أي محل عنده أغلبها.</p></div>${items.length?'<button class="btn" type="button" data-act="clearlist">امسح القائمة</button>':''}</div>`;
+  if(!items.length){$("vList").innerHTML=h+`<div class="empty" style="margin-bottom:64px"><p style="margin:0 0 14px">قائمتك فاضية. افتح أي منتج واضغط "أضف لقائمتي".</p><button class="btn pri" type="button" data-act="samplelist">جرّب قائمة مثال</button></div>`;return}
+  h+=`<div class="tscroll" style="margin-bottom:32px"><table class="tbl"><thead><tr><th>القطعة</th><th>الكمية</th><th></th></tr></thead><tbody>${items.map(([p,q])=>`<tr><td><a href="#p${p.id}" style="font-weight:600">${p.name}</a><div class="model">${p.model}</div></td><td><div class="qty"><button type="button" data-act="lq" data-id="${p.id}" data-d="-1" aria-label="أنقص">−</button><input id="lq${p.id}" value="${q}" inputmode="numeric" data-lq="${p.id}" aria-label="الكمية"><button type="button" data-act="lq" data-id="${p.id}" data-d="1" aria-label="زيد">+</button></div></td><td><button class="btn ghost" type="button" data-act="lrm" data-id="${p.id}">شيل</button></td></tr>`).join("")}</tbody></table></div>`;
+  const cov=Object.keys(shops).map(k=>{let have=0,total=0;const miss=[];items.forEach(([p,q])=>{const r=p.stock.find(r=>r[0]===k);if(r&&r[1]>=q){have++;total+=r[2]*q}else miss.push(p.name)});return{k,have,total,miss}}).filter(c=>c.have).sort((a,b)=>b.have-a.have||a.total-b.total);
+  h+=`<section class="dsec" style="padding-bottom:32px"><div class="top"><h2>أفضل المحلات لقائمتك</h2></div><div class="covers">${cov.map((c,i)=>`<div class="cov${i===0?' best':''}"><div><div class="sname"><a href="#s-${c.k}">${shops[c.k].name}</a>${i===0?'<span class="tag">الأنسب</span>':''}</div><div class="smeta"><span>${shops[c.k].area} · ${shops[c.k].dist}</span></div></div><div style="text-align:end"><b>${c.have} / ${items.length}</b><div class="smeta"><span>${Math.round(c.total*100)/100} د.إ</span></div></div><div class="meter"><i style="width:${Math.round(c.have/items.length*100)}%"></i></div>${c.miss.length?`<div class="miss">ناقص: ${c.miss.join("، ")}</div>`:'<div class="miss" style="color:var(--ok)">عنده كل القطع</div>'}</div>`).join("")||'<div class="empty">ما في محل عنده هالقطع بالكميات المطلوبة.</div>'}</div></section>`;
+  $("vList").innerHTML=h;
+}
+function renderDash(){
+  const h=shops[ME],mine=products.filter(p=>p.stock.some(r=>r[0]===ME)),others=products.filter(p=>!p.stock.some(r=>r[0]===ME)),days=[120,150,138,170,160,210,240];
+  $("vDash").innerHTML=CR("لوحة المحل")+`<div class="shead"><div class="avatar">ن</div><div><h1>${h.name}</h1><div class="smeta"><span>لوحة التحكم</span><span>نسخة تجريبية</span></div></div><div class="acts2"><a class="btn" href="#s-${ME}">شوف صفحة محلك</a></div></div>
+  <div class="tiles"><div class="tile"><small>مشاهدات منتجاتك (7 أيام)</small><b>1,188</b><div class="bars">${days.map(d=>`<i style="height:${Math.round(d/240*100)}%"></i>`).join("")}</div></div><div class="tile"><small>ضغطات اتصال</small><b>37</b></div><div class="tile"><small>رسائل واتساب</small><b>52</b></div><div class="tile"><small>طلبات زبائن جديدة</small><b>${reqs.filter(r=>!r.done).length}</b></div></div>
+  <section class="dsec"><div class="top"><h2>منتجاتك</h2><button class="btn" type="button" data-act="excel">رفع من Excel</button></div>
+  <div class="tscroll"><table class="tbl"><thead><tr><th>المنتج</th><th>الكمية</th><th>السعر (د.إ)</th><th>الحالة</th><th></th></tr></thead><tbody>${mine.map(p=>{const r=myRow(p.id),[c,t]=st(r[1]);return`<tr><td><b>${p.name}</b><div class="model">${p.model}</div></td><td><div class="qty"><button type="button" data-act="dq" data-id="${p.id}" data-d="-1" aria-label="أنقص">−</button><input id="dq${p.id}" value="${r[1]}" inputmode="numeric" data-dq="${p.id}" aria-label="الكمية"><button type="button" data-act="dq" data-id="${p.id}" data-d="1" aria-label="زيد">+</button></div></td><td><input class="inp pin-inp" id="dp${p.id}" value="${r[2]}" inputmode="decimal" data-dp="${p.id}" aria-label="السعر"></td><td><span class="pill ${c}"><i></i>${t}</span></td><td><button class="btn ghost" type="button" data-act="drm" data-id="${p.id}">حذف</button></td></tr>`}).join("")}</tbody></table></div>
+  <h3 style="font-size:16px;margin:22px 0 0">أضف منتج من الكتالوج</h3>
+  <form class="addrow" id="addForm"><select class="inp" id="addP" aria-label="المنتج">${others.map(p=>`<option value="${p.id}">${p.name} · ${p.brand}</option>`).join("")||'<option value="">كل منتجات الكتالوج مضافة</option>'}</select><input class="inp" id="addQ" placeholder="الكمية" inputmode="numeric"><input class="inp" id="addPr" placeholder="السعر" inputmode="decimal"><button class="btn pri" type="submit">أضف</button></form>
+  <details style="margin-top:14px"><summary style="cursor:pointer;color:var(--brand);font-weight:500">المنتج مو موجود بالكتالوج؟ اقترح منتج جديد</summary><form class="addrow" id="sugForm" style="margin-top:10px"><input class="inp" id="sugN" placeholder="اسم المنتج"><input class="inp" id="sugB" placeholder="الماركة"><input class="inp" id="sugM" placeholder="الموديل" dir="ltr"><button class="btn" type="submit">أرسل للمراجعة</button></form></details></section>
+  <section class="dsec" style="padding-bottom:32px"><div class="top"><h2>طلبات الزبائن</h2></div><p class="hint" style="margin:-4px 0 12px">زبائن يدورون على قطع ما لقوها بالموقع. إذا عندك القطعة اضغط "عندي القطعة"، ونرسل رقمك للزبون حتى يتواصل معك.</p>${reqs.map((r,i)=>`<div class="reqc"><div><b>${r.part}</b><small>${r.em} · ${r.t}</small></div>${r.done?'<span class="pill in"><i></i>انرسل ردك</span>':`<button class="btn pri" type="button" data-act="have" data-i="${i}">عندي القطعة</button>`}</div>`).join("")}</section>`;
+}
+function renderLogin(){
+  $("vLogin").innerHTML=user?`<div class="authbox"><h1>أهلاً ${user}</h1><p class="hint" style="margin:0">حسابك يحفظ المفضلة وقوائمك.</p><a class="btn" href="#fav">المفضلة</a><a class="btn" href="#list">قائمتي</a><button class="btn ghost" type="button" data-act="logout">تسجيل الخروج</button></div>`:`<form class="authbox" id="loginForm"><h1>حساب مجاني</h1><p class="hint" style="margin:0">سجّل حتى تنحفظ المفضلة وقوائم المشاريع على أي جهاز.</p><label>الاسم<input class="inp" id="lgName" autocomplete="name"></label><label>رقم الموبايل أو الإيميل<input class="inp" id="lgId" dir="ltr" autocomplete="username"></label><label>كلمة السر<input class="inp" id="lgPw" type="password" autocomplete="current-password"></label><label class="check"><input type="checkbox" id="lgShop"> أنا صاحب محل</label><button class="btn pri" type="submit">إنشاء حساب / دخول</button><p class="hint" style="margin:0">نسخة تجريبية: ما في حساب حقيقي ينحفظ.</p></form>`;
+}
+function refreshUser(){$("loginLink").textContent=user||"تسجيل الدخول";$("signupLink").hidden=!!user}
+document.addEventListener("click",e=>{
+  const sg=e.target.closest("#mSeg button");if(sg){mapEm=sg.dataset.em;mapSel=null;renderMap();return}
+  const pn=e.target.closest("[data-pin]");if(pn){selPin(pn.dataset.pin);return}
+  const b=e.target.closest("[data-act]");if(!b)return;const a=b.dataset.act,id=+b.dataset.id;
+  if(a==="notify"){b.textContent="راح نبلغك";toast("راح نبلغك أول ما تتوفر القطعة عند هذا المحل")}
+  if(a==="addlist"){if(plist.some(x=>x[0]===id))toast("موجود بقائمتك");else{plist.push([id,1]);saveList();toast("انضاف لقائمتك")}}
+  if(a==="samplelist"){plist=[[1,10],[3,6],[5,20],[7,2],[8,1]];saveList();renderList()}
+  if(a==="clearlist"){plist=[];saveList();renderList()}
+  if(a==="lq"){const it=plist.find(x=>x[0]===id);it[1]=Math.max(1,it[1]+ +b.dataset.d);saveList();renderList()}
+  if(a==="lrm"){plist=plist.filter(x=>x[0]!==id);saveList();renderList()}
+  if(a==="dq"){const r=myRow(id);r[1]=Math.max(0,r[1]+ +b.dataset.d);renderDash()}
+  if(a==="drm"){const p=products.find(x=>x.id===id);p.stock=p.stock.filter(r=>r[0]!==ME);renderDash();toast("انحذف المنتج")}
+  if(a==="excel")toast("بالنسخة الحقيقية ترفع ملف Excel والذكاء الاصطناعي يطابق منتجاتك مع الكتالوج");
+  if(a==="have"){reqs[+b.dataset.i].done=1;store.set("sw_reqs",reqs);renderDash();toast("انرسل رقمك للزبون")}
+  if(a==="logout"){user=null;try{localStorage.removeItem("sw_user")}catch(_){}refreshUser();renderLogin()}
+});
+document.addEventListener("keydown",e=>{const pn=e.target.closest&&e.target.closest("[data-pin]");if(pn&&(e.key==="Enter"||e.key===" ")){e.preventDefault();selPin(pn.dataset.pin)}});
+document.addEventListener("change",e=>{const t=e.target,v=parseFloat(t.value);
+  if(t.dataset.lq){const it=plist.find(x=>x[0]===+t.dataset.lq);if(it&&v>0){it[1]=Math.round(v);saveList()}renderList()}
+  if(t.dataset.dq){if(v>=0)myRow(+t.dataset.dq)[1]=Math.round(v);renderDash();toast("انحفظ التعديل")}
+  if(t.dataset.dp){if(v>0)myRow(+t.dataset.dp)[2]=v;renderDash();toast("انحفظ التعديل")}
+});
+document.addEventListener("submit",e=>{const f=e.target;
+  if(f.id==="addForm"){e.preventDefault();const id=+$("addP").value,q=parseInt($("addQ").value),pr=parseFloat($("addPr").value);if(!id||!(q>=0)||!(pr>0)){toast("اكتب الكمية والسعر");return}products.find(x=>x.id===id).stock.push([ME,q,pr]);renderDash();toast("انضاف المنتج لمحلك")}
+  if(f.id==="sugForm"){e.preventDefault();if(!$("sugN").value.trim()){toast("اكتب اسم المنتج");return}f.reset();toast("وصل اقتراحك. راح نراجعه ونضيفه للكتالوج")}
+  if(f.id==="loginForm"){e.preventDefault();const n=$("lgName").value.trim();if(!n||!$("lgId").value.trim()||!$("lgPw").value){toast("عبّي كل الخانات");return}user=n;try{localStorage.setItem("sw_user",n)}catch(_){}refreshUser();toast("أهلاً "+n);go($("lgShop").checked?"#dash":"#home")}
+});
+/* ===== Arabic / English ===== */
+const D={"الرئيسية":"Home","كل المنتجات":"All products","خريطة المحلات":"Shop map","قائمتي":"My list","لأصحاب المحلات":"For shop owners","المفضلة":"Favorites","تسجيل الدخول":"Log in","حساب مجاني":"Free account","ابحث عن قطعة":"Search for a part","القائمة":"Menu","Switcho الرئيسية":"Switcho home",
+"محلات الكهربائيات في الشارقة ودبي":"Electrical shops in Sharjah and Dubai","كل القطع الكهربائية في مكان واحد":"Every electrical part in one place","ابحث بالاسم أو بالصورة، وشوف أي محل عنده القطعة، الكمية المتوفرة، السعر، ورقم التواصل.":"Search by name or photo and see which shop has the part, how many are in stock, the price, and the contact number.","سويتش شنايدر، لمبة سبوت، قاطع 32 أمبير":"Schneider switch, spot bulb, 32A breaker","ابحث عن منتج":"Search for a product","كل الإمارات":"All emirates","الشارقة":"Sharjah","دبي":"Dubai","بحث بالصورة":"Search by photo","بحث":"Search","الأكثر بحثاً:":"Popular:","شنايدر":"Schneider","لمبات سبوت":"Spot bulbs","فيش 13 أمبير":"13A sockets","قواطع ABB":"ABB breakers","الإمارة":"Emirate",
+"محلات مشتركة":"Partner shops","منتج بالكتالوج":"Catalog products","قطعة متوفرة":"Parts in stock","إمارات":"Emirates","تصفح حسب الفئة":"Browse by category","سويتشات":"Switches","أفياش":"Sockets","إنارة":"Lighting","قواطع":"Breakers","أسلاك":"Cables","مراوح شفط":"Exhaust fans","شفتها مؤخراً":"Recently viewed",
+"عندك محل كهربائيات؟":"Own an electrical shop?","اعرض منتجاتك وكمياتك لكل شخص يدوّر على قطعة في منطقتك. الزبون يتواصل معك مباشرة، بدون عمولة.":"Show your products and stock to everyone looking for a part in your area. Customers contact you directly, with no commission.","سجّل محلك":"List your shop",
+"باقات أصحاب المحلات":"Plans for shop owners","تجربة":"Trial","مجاناً":"Free","أول شهر":"first month","حتى 50 منتج":"Up to 50 products","صفحة للمحل":"Shop page","اتصال وواتساب مباشر":"Direct calls and WhatsApp","ابدأ مجاناً":"Start free","الأساسية":"Basic","الأكثر طلباً":"Most popular","د.إ / شهر":"AED / month","منتجات بلا حدود":"Unlimited products","رفع المنتجات من Excel":"Upload products from Excel","علامة محل موثّق":"Verified shop badge","إحصائيات: كم شخص شاف منتجاتك":"Stats: how many people saw your products","اشترك":"Subscribe","المميزة":"Premium","كل مميزات الأساسية":"Everything in Basic","محلك يطلع أول بالنتائج":"Your shop shows first in results","ظهور بالصفحة الرئيسية":"Featured on the home page","دعم أولوية":"Priority support","أسعار مقترحة للتجربة.":"Suggested prices for the trial.",
+"أسئلة شائعة":"FAQ","هل Switcho يبيع المنتجات؟":"Does Switcho sell products?","لا. Switcho يوريك أي محل عنده القطعة، وأنت تتواصل مع المحل مباشرة وتشتري منه.":"No. Switcho shows you which shop has the part, and you contact the shop directly and buy from them.","هل الكميات المعروضة دقيقة؟":"Are the stock numbers accurate?","كل محل يحدّث كمياته بنفسه، ونعرض لك متى آخر تحديث. إذا لقيت كمية غلط اضغط \"أبلغ عن كمية غلط\" بصفحة المنتج.":"Each shop updates its own stock, and we show when it was last updated. If a number is wrong, tap \"Report wrong stock\" on the product page.","ما أعرف اسم القطعة، شسوي؟":"I don't know the part's name. What do I do?","صوّرها واضغط \"بحث بالصورة\"، ونطلع لك القطع المشابهة.":"Take a photo and tap \"Search by photo\", and we'll show you matching parts.","ما لقيت القطعة اللي أبيها؟":"Can't find the part you need?","ابحث عنها، وإذا ما طلعت نتائج تقدر ترسل طلب للمحلات، واللي عنده يتواصل معك.":"Search for it. If nothing comes up, send a request to the shops, and whoever has it will contact you.","كم يكلف الاشتراك لصاحب المحل؟":"How much does a shop subscription cost?","أول شهر مجاني، وبعدها تختار الباقة اللي تناسبك. ما في عمولة على البيع.":"The first month is free, then pick the plan that suits you. No commission on sales.",
+"نتائج البحث":"Search results","المسار":"Breadcrumb","الأكثر توفراً":"Most available","الأقل سعراً":"Lowest price","الترتيب":"Sort","الفلاتر":"Filters","التوفر":"Availability","المتوفر فقط":"In stock only","الماركة":"Brand","الصورة المرفوعة":"Uploaded photo","جاري التعرف على القطعة":"Identifying the part","نحلل الصورة بالذكاء الاصطناعي":"Analyzing the photo with AI","تعرّفنا عليها: سويتش شنايدر":"Identified: Schneider switch","نتيجة تجريبية. بالنسخة الحقيقية يتعرف الذكاء الاصطناعي على صورتك":"Demo result. In the real version, AI identifies your photo",
+"ما لقيت القطعة؟ اطلبها من المحلات":"Can't find it? Request it from shops","Switcho ما يبيع، بس اكتب القطعة اللي تدور عليها ورقمك، ونعرض طلبك على أصحاب المحلات بالإمارة. اللي عنده القطعة يتصل فيك مباشرة.":"Switcho doesn't sell. Write the part you need and your number, and we show your request to shop owners in that emirate. Whoever has it calls you directly.","اسم القطعة أو الموديل":"Part name or model","رقمك":"Your number","أرسل الطلب":"Send request","اكتب اسم القطعة ورقمك":"Enter the part name and your number","وصل طلبك. أرسلناه لمحلات الإمارة، واللي عنده القطعة راح يتواصل معك.":"Request received. We sent it to shops in the emirate, and whoever has the part will contact you.",
+"يبدأ من":"From","السعر":"Price","غير متوفر":"Out of stock","أقل سعر":"Lowest price","متوفر في":"Available at","الكمية الكلية":"Total stock","وين تلقاه":"Where to find it","الكل":"All","ما في محلات بهالإمارة عندها هالقطعة.":"No shops in this emirate have this part.","تواصل مع المحل مباشرة. Switcho ما ياخذ عمولة على البيع. ·":"Contact the shop directly. Switcho takes no commission. ·","أبلغ عن كمية غلط":"Report wrong stock","منتجات مشابهة":"Similar products","مشاركة":"Share","+ أضف لقائمتي":"+ Add to my list","مفتوح":"Open","مفتوح الحين":"Open now","اتصال":"Call","واتساب":"WhatsApp","نسخ الرقم":"Copy number","تم النسخ":"Copied","محل موثّق":"Verified shop","الاتجاهات للمحل":"Directions to the shop","الاتجاهات":"Directions","نبّهني لما يتوفر":"Notify me when available","راح نبلغك":"We'll notify you","المحلات":"Shops","رقم التواصل":"Phone","ساعات العمل":"Opening hours","المنتجات المعروضة":"Listed products","آخر تحديث للكميات":"Stock last updated","منتجات المحل":"Shop products","الموقع على الخريطة":"View on map",
+"انحفظ بالمفضلة":"Saved to favorites","انشال من المفضلة":"Removed from favorites","تم نسخ رابط المنتج":"Product link copied","شكراً، راح نتأكد من الكمية مع المحل":"Thanks, we'll check the stock with the shop","ما حفظت شي للحين. اضغط على القلب بأي منتج حتى يوصل هنا.":"Nothing saved yet. Tap the heart on any product to add it here.","راح نبلغك أول ما تتوفر القطعة عند هذا المحل":"We'll let you know as soon as this shop has it","انضاف لقائمتك":"Added to your list","موجود بقائمتك":"Already in your list",
+"سوق القطع الكهربائية في الإمارات. ابحث، قارن، وتواصل مع المحل مباشرة.":"The UAE marketplace for electrical parts. Search, compare, and contact the shop directly.","للزبائن":"Customers","الأسئلة الشائعة":"FAQ","الباقات والأسعار":"Plans and pricing","تابعنا":"Follow us","نسخة تجريبية. أسماء المحلات والأسعار والأرقام أمثلة فقط.":"Demo version. Shop names, prices and numbers are examples only.","للأعلى":"Back to top",
+"خريطة توضيحية لمواقع المحلات":"Illustrative map of shop locations","الخليج العربي":"Arabian Gulf","صفحة المحل":"Shop page","خريطة توضيحية. زر \"الاتجاهات\" يفتح الموقع الحقيقي على Google Maps.":"Illustrative map. \"Directions\" opens the real location in Google Maps.",
+"قائمة المشروع":"Project list","حط كل القطع اللي تحتاجها، ونوريك أي محل عنده أغلبها.":"Add every part you need, and we'll show which shop has most of them.","امسح القائمة":"Clear list","قائمتك فاضية. افتح أي منتج واضغط \"أضف لقائمتي\".":"Your list is empty. Open any product and tap \"Add to my list\".","جرّب قائمة مثال":"Try a sample list","القطعة":"Part","الكمية":"Quantity","شيل":"Remove","أنقص":"Decrease","زيد":"Increase","أفضل المحلات لقائمتك":"Best shops for your list","الأنسب":"Best match","عنده كل القطع":"Has every part","ما في محل عنده هالقطع بالكميات المطلوبة.":"No shop has these parts in the quantities you need.",
+"لوحة المحل":"Shop dashboard","لوحة التحكم":"Dashboard","نسخة تجريبية":"Demo","شوف صفحة محلك":"View your shop page","مشاهدات منتجاتك (7 أيام)":"Product views (7 days)","ضغطات اتصال":"Call taps","رسائل واتساب":"WhatsApp messages","طلبات زبائن جديدة":"New customer requests","منتجاتك":"Your products","رفع من Excel":"Upload from Excel","المنتج":"Product","السعر (د.إ)":"Price (AED)","الحالة":"Status","حذف":"Delete","أضف منتج من الكتالوج":"Add a product from the catalog","كل منتجات الكتالوج مضافة":"All catalog products added","أضف":"Add","المنتج مو موجود بالكتالوج؟ اقترح منتج جديد":"Product not in the catalog? Suggest a new one","اسم المنتج":"Product name","الموديل":"Model","أرسل للمراجعة":"Send for review","طلبات الزبائن":"Customer requests","زبائن يدورون على قطع ما لقوها بالموقع. إذا عندك القطعة اضغط \"عندي القطعة\"، ونرسل رقمك للزبون حتى يتواصل معك.":"Customers looking for parts they couldn't find. If you have it, tap \"I have it\" and we'll send your number to the customer.","عندي القطعة":"I have it","انرسل ردك":"Reply sent","انحفظ التعديل":"Change saved","انضاف المنتج لمحلك":"Product added to your shop","اكتب الكمية والسعر":"Enter quantity and price","وصل اقتراحك. راح نراجعه ونضيفه للكتالوج":"Suggestion received. We'll review it and add it to the catalog","اكتب اسم المنتج":"Enter the product name","بالنسخة الحقيقية ترفع ملف Excel والذكاء الاصطناعي يطابق منتجاتك مع الكتالوج":"In the real version you upload an Excel file and AI matches your products to the catalog","انرسل رقمك للزبون":"Your number was sent to the customer","انحذف المنتج":"Product deleted",
+"حسابك يحفظ المفضلة وقوائمك.":"Your account keeps your favorites and lists.","تسجيل الخروج":"Log out","سجّل حتى تنحفظ المفضلة وقوائم المشاريع على أي جهاز.":"Sign up to keep your favorites and project lists on any device.","الاسم":"Name","رقم الموبايل أو الإيميل":"Mobile number or email","كلمة السر":"Password","أنا صاحب محل":"I own a shop","إنشاء حساب / دخول":"Sign up / Log in","نسخة تجريبية: ما في حساب حقيقي ينحفظ.":"Demo: no real account is saved.","عبّي كل الخانات":"Fill in all fields",
+"سويتش مفرد Unica أبيض":"Unica 1-gang switch, white","سويتش دبل Lisse أبيض":"Lisse 2-gang switch, white","فيش دبل 13 أمبير مع سويتش":"13A double switched socket","فيش مفرد 13 أمبير":"13A single switched socket","لمبة سبوت LED 7 واط":"7W LED spot bulb","بانل LED مربع 60×60":"60×60 LED panel","قاطع أحادي 32 أمبير":"32A single-pole breaker","سلك 2.5 ملم لفة 100 متر":"2.5mm cable, 100m roll","مروحة شفط حمام 15 سم":"15cm bathroom exhaust fan",
+"النور للأدوات الكهربائية":"Al Noor Electrical Tools","واط ستور":"Watt Store","البرق للإنارة":"Al Barq Lighting","الخليج للمواد الكهربائية":"Al Khaleej Electrical Supplies","ضياء للإنارة الحديثة":"Diyaa Modern Lighting","الصناعية 6":"Industrial Area 6","الديرة":"Deira","أبو شغارة":"Abu Shagara","القوز":"Al Quoz","التعاون":"Al Taawun",
+"قبل ساعة":"1 hour ago","اليوم":"Today","أمس":"Yesterday","قبل 3 ساعات":"3 hours ago","قبل يومين":"2 days ago","قبل 20 دقيقة":"20 min ago","قبل ساعتين":"2 hours ago","الحين":"Just now","سويتش ثلاثي شنايدر أسود":"Schneider 3-gang switch, black","قاطع 63 أمبير ثلاثي الأطوار":"63A three-phase breaker","لمبة LED تراك 30 واط":"30W LED track light","د.إ":"AED",
+"النوع":"Type","التيار":"Current","اللون":"Color","التركيب":"Mounting","المعيار":"Standard","القدرة":"Power","لون الضوء":"Color temperature","القاعدة":"Base","العمر":"Lifespan","المقاس":"Size","الأقطاب":"Poles","المنحنى":"Curve","السعة":"Breaking capacity","المقطع":"Cross-section","الطول":"Length","العزل":"Insulation","القطر":"Diameter","الضجيج":"Noise"};
+const RULES=[[/^(\d+) منتج$/,(_,n)=>n+" products"],[/^(\d+) منتج متوفر في (\d+) محلات$/,(_,a,b)=>`${a} products in stock at ${b} shops`],[/^(\d+) منتج متوفر$/,(_,n)=>n+" products in stock"],[/^(\d+) منتج محفوظ$/,(_,n)=>n+" saved products"],[/^(\d+) محلات مشتركة$/,(_,n)=>n+" partner shops"],[/^نتائج "(.*)"$/,(_,q)=>`Results for "${q}"`],[/^([\d.,]+) د\.إ$/,(_,n)=>"AED "+n],[/^متوفر في (\d+) (محلات|محل)$/,(_,n)=>`In stock at ${n} shop${n>1?"s":""}`],[/^كمية قليلة \((\d+)\)$/,(_,n)=>`Low stock (${n})`],[/^متوفر \((\d+) قطعة\)$/,(_,n)=>`In stock (${n} pcs)`],[/^تحديث الكمية: (.+)$/,(_,t)=>"Stock updated: "+trc(t)],[/^(\d+) من (\d+) محلات$/,(_,a,b)=>`${a} of ${b} shops`],[/^(\d+) قطعة$/,(_,n)=>n+" pcs"],[/^رقم (.+)$/,(_,s)=>trc(s)+" phone"],[/^([\d:]+) ص – ([\d:]+) م$/,(_,a,b)=>`${a} AM – ${b} PM`],[/^ناقص: (.+)$/,(_,s)=>"Missing: "+s.split("، ").map(trc).join(", ")],[/^أهلاً (.+)$/,(_,s)=>"Hi "+s]];
+let lang=(()=>{try{return localStorage.getItem("sw_lang")||"ar"}catch(_){return"ar"}})();
+function trc(c){if(D[c])return D[c];for(const[r,f]of RULES){const m=c.match(r);if(m)return f(...m)}if(c.includes(" · "))return c.split(" · ").map(trc).join(" · ");return c}
+function tr(s){const m=s.match(/^(\s*)([\s\S]*?)(\s*)$/);return m[2]?m[1]+trc(m[2])+m[3]:s}
+function txt(n){const p=n.parentNode;if(!p||/^(SCRIPT|STYLE)$/.test(p.nodeName))return;if(n.ar===undefined)n.ar=n.nodeValue;const v=lang==="en"?tr(n.ar):n.ar;if(n.nodeValue!==v)n.nodeValue=v}
+function applyTo(root){if(root.nodeType===3)return txt(root);if(root.nodeType!==1)return;const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode())txt(n);
+  [root,...root.querySelectorAll("[placeholder],[aria-label],[title]")].forEach(el=>["placeholder","aria-label","title"].forEach(a=>{if(!el.hasAttribute(a))return;const k="ar"+a.replace("-","");if(!(k in el.dataset))el.dataset[k]=el.getAttribute(a);const v=lang==="en"?tr(el.dataset[k]):el.dataset[k];if(el.getAttribute(a)!==v)el.setAttribute(a,v)}))}
+function setLang(l){lang=l;try{localStorage.setItem("sw_lang",l)}catch(_){}const r=document.documentElement;r.lang=l;r.dir=l==="en"?"ltr":"rtl";$("langBtn").textContent=l==="en"?"عربي":"EN";applyTo(document.body)}
+new MutationObserver(ms=>{if(lang!=="en")return;ms.forEach(m=>m.addedNodes.forEach(applyTo))}).observe(document.body,{childList:true,subtree:true});
+$("langBtn").addEventListener("click",()=>setLang(lang==="en"?"ar":"en"));
+refreshFavs();refreshUser();
+addEventListener("hashchange",()=>{route();refreshFavs()});route();setLang(lang);
+</script>
